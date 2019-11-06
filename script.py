@@ -2,6 +2,8 @@ from __future__ import print_function
 import pickle
 import os.path
 import re
+import sys
+import csv
 from datetime import date
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -17,6 +19,7 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
 def main(b):
     SAMPLE_SPREADSHEET_ID = '1M-70XYb8Nw2eaeNTJiy-5TWzgtFCrhWid4973Nb5MJ4'
     SAMPLE_RANGE_NAME = b
+
     """Shows basic usage of the Sheets API.
     Prints values from a sample spreadsheet.
     """
@@ -79,7 +82,10 @@ if __name__ == '__main__':
     sheet1.write(0, 1, 'Amount')
     sheet1.write(0, 2, 'Currency')
         
-    Date =re.split('-|/',input("Enter Date as MM-DD-YYYY :  "))
+    if not sys.argv[1]:
+      Date=re.split('-|/',input("Enter Date as MM-DD-YYYY :  "))
+    else:
+      Date=re.split('-|/',sys.argv[1])
     Date=DateFormat(Date)
     today,email= date.today(),{}
     l=main('Articles!D2:G')
@@ -94,12 +100,15 @@ if __name__ == '__main__':
     #print(email)
     p_Author,p_Editor,p_operation=map(int,main('Rates!A2:C2')[0])
     new_score = report(email,l,p_Author,p_Editor,p_operation,Date)
+    csvRows = []
+    resultFile = open("payments.csv",'w')
+    writer = csv.writer(resultFile)
     for j in new_score:
         if new_score[j][1]>0:
             sheet1.write(row,0,new_score[j][0][0])
             sheet1.write(row,1,new_score[j][1])
             sheet1.write(row,2,"USD")
             row+=1
-            print(new_score[j][0][0],new_score[j][1],"USD")
-            
-    wb.save('Report.xls')
+            print(new_score[j][0][0],",",new_score[j][1],",","USD")
+            writer.writerow([new_score[j][0][0],new_score[j][1],"USD"])
+    # wb.save('Report.csv')
